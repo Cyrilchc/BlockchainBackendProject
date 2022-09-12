@@ -2,21 +2,23 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/google/uuid"
 	"io"
 	"log"
 	"net/http"
 )
 
-type MockServiceExpectation struct {
-	Blockchain string `json:"blockchain"`
-	Pincode    string `json:"pin_code"`
-}
+const (
+	SERVER_PORT = "5001"
+)
 
-type MockServiceAnswer struct {
-	WalletAddress   string `json:"wallet_address"`
-	CurrencyCode    string `json:"currency_code"`
-	CurrencyBalance string `json:"currency_balance"`
+func main() {
+	http.HandleFunc("/wallets/create", mockCreateWallet)
+	err := http.ListenAndServe(fmt.Sprintf(":%s", SERVER_PORT), nil)
+	if err != nil {
+		fmt.Print(err)
+	}
 }
 
 /*
@@ -29,12 +31,7 @@ func mockCreateWallet(w http.ResponseWriter, r *http.Request) {
 	// Read body
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, err := w.Write(buildHttpErrorMessage("Unable to read body"))
-		if err != nil {
-			log.Fatalf("Unable to read body : %s", err)
-		}
-
+		sendHttpError(http.StatusInternalServerError, "Unable to read body", w, err)
 		return
 	}
 
@@ -42,7 +39,7 @@ func mockCreateWallet(w http.ResponseWriter, r *http.Request) {
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			log.Fatalf("IO error, Unable to close http request body : %s", err)
+			log.Printf("IO error, Unable to close http request body : %s", err)
 		}
 	}(r.Body)
 
@@ -50,12 +47,7 @@ func mockCreateWallet(w http.ResponseWriter, r *http.Request) {
 	mockServiceExpectation := MockServiceExpectation{}
 	err = json.Unmarshal(body, &mockServiceExpectation)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, err := w.Write(buildHttpErrorMessage("Unable to serialize body"))
-		if err != nil {
-			log.Fatalf("Unable to serialize body : %s", err)
-		}
-
+		sendHttpError(http.StatusInternalServerError, "Unable to serialize body", w, err)
 		return
 	}
 
@@ -69,18 +61,14 @@ func mockCreateWallet(w http.ResponseWriter, r *http.Request) {
 	// Deserialize response to json
 	mockServiceAnswerJson, err := json.Marshal(mockServiceAnswer)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_, err := w.Write(buildHttpErrorMessage("Unable to deserialize response"))
-		if err != nil {
-			log.Fatalf("Unable to deserialize response : %s", err)
-		}
-
+		sendHttpError(http.StatusInternalServerError, "Unable to deserialize response", w, err)
 		return
 	}
 
 	// Send back the response
+	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(mockServiceAnswerJson)
 	if err != nil {
-		log.Fatalf("Unable to write response : %s", err)
+		log.Print("Unable to write response : %s", err)
 	}
 }

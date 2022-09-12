@@ -13,7 +13,7 @@ func buildHttpErrorMessage(message string) []byte {
 	resp["error"] = message
 	jsonResp, err := json.Marshal(resp)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 
 	return jsonResp
@@ -24,30 +24,44 @@ func checkHttpMethod(method string, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		_, err := w.Write(buildHttpErrorMessage("Only POST method is allowed"))
 		if err != nil {
-			log.Fatalf("Unable to write to http response : %s", err)
+			log.Printf("Unable to write to http response : %s", err)
 		}
 
 		return
 	}
 }
 
-func connectDatabase(host string, port int, user string, password string, dbname string) (*sql.DB, error) {
+func connectDatabase() (*sql.DB, error) {
 	con := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", HOST, PORT, USER, PASSWORD, DBNAME)
 	return sql.Open("postgres", con)
 }
 
-func insertPlayer(player *Player, db *sql.DB) (sql.Result, error) {
-	query := `insert into "players"("username","password","pincode","jsondata") values ($1, $2, $3, $4)`
-	jsonPlayer, err := json.Marshal(player)
+func sendHttpError(httpErrorCode int, message string, w http.ResponseWriter, err error) {
+	log.Print(err)
+	w.WriteHeader(httpErrorCode)
+	_, err = w.Write(buildHttpErrorMessage(message))
 	if err != nil {
-		return nil, err
+		log.Printf("%s : %s", message, err)
 	}
-
-	result, err := db.Exec(query, player.Username, player.Password, player.Pincode, jsonPlayer)
-	return result, err
 }
 
-func insertWallet(wallet *Wallet, id *int64, db *sql.DB) error {
+func insertPlayer(player *Player, db *sql.DB) (int, error) {
+	query := `insert into "players"("username","password","pincode","jsondata") values ($1, $2, $3, $4) RETURNING id`
+	jsonPlayer, err := json.Marshal(player)
+	if err != nil {
+		return 0, nil
+	}
+
+	insertedId := 0
+	err = db.QueryRow(query, player.Username, player.Password, player.Pincode, jsonPlayer).Scan(&insertedId)
+	if err != nil {
+		return 0, err
+	}
+
+	return insertedId, nil
+}
+
+func insertWallet(wallet *Wallet, id *int, db *sql.DB) error {
 	query := `insert into "wallets"("address","id_player","jsondata") values ($1, $2, $3)`
 	jsonWallet, err := json.Marshal(wallet)
 	if err != nil {
