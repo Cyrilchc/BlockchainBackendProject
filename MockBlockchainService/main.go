@@ -26,7 +26,11 @@ Mocks a blockchain service to create a wallet
 */
 func mockCreateWallet(w http.ResponseWriter, r *http.Request) {
 	// Check method
-	checkHttpMethod("POST", w, r)
+	err := checkHttpMethod("POST", w, r)
+	if err != nil {
+		log.Print(err)
+		return
+	}
 
 	// Read body
 	body, err := io.ReadAll(r.Body)
@@ -47,7 +51,7 @@ func mockCreateWallet(w http.ResponseWriter, r *http.Request) {
 	mockServiceExpectation := MockServiceExpectation{}
 	err = json.Unmarshal(body, &mockServiceExpectation)
 	if err != nil {
-		sendHttpError(http.StatusInternalServerError, "Unable to serialize body", w, err)
+		sendHttpError(http.StatusInternalServerError, "Unable to deserialize body", w, err)
 		return
 	}
 
@@ -58,7 +62,7 @@ func mockCreateWallet(w http.ResponseWriter, r *http.Request) {
 		CurrencyBalance: "0",
 	}
 
-	// Deserialize response to json
+	// Serialize response to json
 	mockServiceAnswerJson, err := json.Marshal(mockServiceAnswer)
 	if err != nil {
 		sendHttpError(http.StatusInternalServerError, "Unable to deserialize response", w, err)
@@ -69,6 +73,6 @@ func mockCreateWallet(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(mockServiceAnswerJson)
 	if err != nil {
-		log.Print("Unable to write response : %s", err)
+		log.Printf("Unable to write response : %s", err)
 	}
 }

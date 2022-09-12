@@ -16,7 +16,8 @@ import (
 const (
 	SERVER_PORT           = "5000"
 	EXTERNAL_SERVICE_PORT = "5001"
-	HOST                  = "localhost"
+	EXTERNAL_SERVICE_HOST = "127.0.0.3"
+	DB_HOST               = "127.0.0.4"
 	PORT                  = 5432
 	USER                  = "postgres"
 	PASSWORD              = "cyril"
@@ -29,7 +30,6 @@ var regexPinCode = regexp.MustCompile(`^\d{6}$`)
 
 func main() {
 	http.HandleFunc("/", createUserAndWallet)
-	//http.HandleFunc("/wallets/create", mockCreateWallet)
 	err := http.ListenAndServe(fmt.Sprintf(":%s", SERVER_PORT), nil)
 	if err != nil {
 		fmt.Print(err)
@@ -55,7 +55,11 @@ func createUserAndWallet(w http.ResponseWriter, r *http.Request) {
 	}(db)
 
 	// Check method
-	checkHttpMethod("POST", w, r)
+	err = checkHttpMethod("POST", w, r)
+	if err != nil {
+		log.Print(err)
+		return
+	}
 
 	// Read body
 	body, err := io.ReadAll(r.Body)
@@ -68,7 +72,7 @@ func createUserAndWallet(w http.ResponseWriter, r *http.Request) {
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			log.Print("IO error, Unable to close http request body : %s", err)
+			log.Printf("IO error, Unable to close http request body : %s", err)
 		}
 	}(r.Body)
 
@@ -113,7 +117,7 @@ func createUserAndWallet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send request to external service
-	response, err := http.Post(fmt.Sprintf("http://%s:%s/wallets/create", HOST, EXTERNAL_SERVICE_PORT), "application/json", bytes.NewBuffer(data))
+	response, err := http.Post(fmt.Sprintf("http://127.0.0.1:%s/wallets/create", EXTERNAL_SERVICE_PORT), "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		sendHttpError(http.StatusInternalServerError, "External service returned an error", w, err)
 		return
@@ -128,7 +132,7 @@ func createUserAndWallet(w http.ResponseWriter, r *http.Request) {
 
 	// Check error
 	if response.StatusCode != 200 {
-		sendHttpError(http.StatusInternalServerError, "External service returned an error", w, errors.New(string(responseBody)))
+		sendHttpError(http.StatusInternalServerError, fmt.Sprintf("External service returned an error : %s", string(responseBody)), w, errors.New(string(responseBody)))
 		return
 	}
 
@@ -136,7 +140,7 @@ func createUserAndWallet(w http.ResponseWriter, r *http.Request) {
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			log.Print("IO error, Unable to close http request body : %s", err)
+			log.Printf("IO error, Unable to close http request body : %s", err)
 		}
 	}(response.Body)
 
@@ -183,6 +187,6 @@ func createUserAndWallet(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(playerInformationJson)
 	if err != nil {
-		log.Print("Unable to write response : %s", err)
+		log.Printf("Unable to write response : %s", err)
 	}
 }

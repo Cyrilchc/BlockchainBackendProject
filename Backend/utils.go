@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -19,7 +20,7 @@ func buildHttpErrorMessage(message string) []byte {
 	return jsonResp
 }
 
-func checkHttpMethod(method string, w http.ResponseWriter, r *http.Request) {
+func checkHttpMethod(method string, w http.ResponseWriter, r *http.Request) error {
 	if r.Method != method {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		_, err := w.Write(buildHttpErrorMessage("Only POST method is allowed"))
@@ -27,12 +28,14 @@ func checkHttpMethod(method string, w http.ResponseWriter, r *http.Request) {
 			log.Printf("Unable to write to http response : %s", err)
 		}
 
-		return
+		return errors.New("Method not allowed")
 	}
+
+	return nil
 }
 
 func connectDatabase() (*sql.DB, error) {
-	con := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", HOST, PORT, USER, PASSWORD, DBNAME)
+	con := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", DB_HOST, PORT, USER, PASSWORD, DBNAME)
 	return sql.Open("postgres", con)
 }
 

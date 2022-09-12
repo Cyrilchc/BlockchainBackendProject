@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 )
@@ -15,7 +16,7 @@ func sendHttpError(httpErrorCode int, message string, w http.ResponseWriter, err
 	}
 }
 
-func checkHttpMethod(method string, w http.ResponseWriter, r *http.Request) {
+func checkHttpMethod(method string, w http.ResponseWriter, r *http.Request) error {
 	if r.Method != method {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		_, err := w.Write(buildHttpErrorMessage("Only POST method is allowed"))
@@ -23,8 +24,10 @@ func checkHttpMethod(method string, w http.ResponseWriter, r *http.Request) {
 			log.Printf("Unable to write to http response : %s", err)
 		}
 
-		return
+		return errors.New("Method not allowed")
 	}
+
+	return nil
 }
 
 func buildHttpErrorMessage(message string) []byte {
