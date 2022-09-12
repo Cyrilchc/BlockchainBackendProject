@@ -16,8 +16,8 @@ import (
 const (
 	SERVER_PORT           = "5000"
 	EXTERNAL_SERVICE_PORT = "5001"
-	EXTERNAL_SERVICE_HOST = "127.0.0.3"
-	DB_HOST               = "127.0.0.4"
+	EXTERNAL_SERVICE_HOST = "mock"
+	DB_HOST               = "db"
 	PORT                  = 5432
 	USER                  = "postgres"
 	PASSWORD              = "cyril"
@@ -117,7 +117,7 @@ func createUserAndWallet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send request to external service
-	response, err := http.Post(fmt.Sprintf("http://127.0.0.1:%s/wallets/create", EXTERNAL_SERVICE_PORT), "application/json", bytes.NewBuffer(data))
+	response, err := http.Post(fmt.Sprintf("http://%s:%s/wallets/create", EXTERNAL_SERVICE_HOST, EXTERNAL_SERVICE_PORT), "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		sendHttpError(http.StatusInternalServerError, "External service returned an error", w, err)
 		return
