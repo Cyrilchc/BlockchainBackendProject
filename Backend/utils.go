@@ -5,27 +5,55 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 )
 
-func buildHttpErrorMessage(message string) []byte {
+func checkUsername(username string) error {
+	if !regexUsername.MatchString(username) {
+		return errors.New("username does not respect the naming policy")
+	}
+
+	return nil
+}
+
+func checkPassword(password string) error {
+	if !regexPassword.MatchString(password) {
+		return errors.New("password does not respect the complexity policy")
+	}
+
+	return nil
+}
+
+func checkPinCode(pincode string) error {
+	if !regexPinCode.MatchString(pincode) {
+		return errors.New("pin code must contains 6 digits")
+	}
+
+	return nil
+}
+
+func buildHttpErrorMessage(message string) ([]byte, error) {
 	resp := make(map[string]string)
 	resp["error"] = message
 	jsonResp, err := json.Marshal(resp)
 	if err != nil {
-		log.Print(err)
+		return nil, err
 	}
 
-	return jsonResp
+	return jsonResp, nil
 }
 
 func checkHttpMethod(method string, w http.ResponseWriter, r *http.Request) error {
 	if r.Method != method {
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		_, err := w.Write(buildHttpErrorMessage("Only POST method is allowed"))
+		message, err := buildHttpErrorMessage("Only POST method is allowed")
 		if err != nil {
-			log.Printf("Unable to write to http response : %s", err)
+			return err
+		}
+
+		_, err = w.Write(message)
+		if err != nil {
+			return err
 		}
 
 		return errors.New("method not allowed")
@@ -39,13 +67,15 @@ func connectDatabase() (*sql.DB, error) {
 	return sql.Open("postgres", con)
 }
 
-func sendHttpError(httpErrorCode int, message string, w http.ResponseWriter, err error) {
-	log.Print(err)
+func sendHttpError(httpErrorCode int, message string, w http.ResponseWriter, err error) error {
 	w.WriteHeader(httpErrorCode)
-	_, err = w.Write(buildHttpErrorMessage(message))
+	errorMessage, err := buildHttpErrorMessage(message)
 	if err != nil {
-		log.Printf("%s : %s", message, err)
+		return err
 	}
+
+	_, err = w.Write(errorMessage)
+	return err
 }
 
 func insertPlayer(player *Player, db *sql.DB) (int, error) {

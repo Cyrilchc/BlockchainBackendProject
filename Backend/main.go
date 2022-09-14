@@ -91,20 +91,32 @@ func createUserAndWallet(w http.ResponseWriter, r *http.Request) {
 	// Uniqueness of username will be checked by database constraints
 
 	// Username naming policy
-	if !regexUsername.MatchString(player.Username) {
-		sendHttpError(http.StatusBadRequest, "Username does not respect the naming policy", w, err)
+	err = checkUsername(player.Username)
+	if err != nil {
+		err = sendHttpError(http.StatusBadRequest, "Username does not respect the naming policy", w, err)
+		if err != nil {
+			log.Print(err)
+		}
 		return
 	}
 
 	// Password policy
-	if !regexPassword.MatchString(player.Password) {
-		sendHttpError(http.StatusBadRequest, "Password does not respect the complexity policy", w, err)
+	err = checkPassword(player.Password)
+	if err != nil {
+		err = sendHttpError(http.StatusBadRequest, "Password does not respect the complexity policy", w, err)
+		if err != nil {
+			log.Print(err)
+		}
 		return
 	}
 
 	// Pincode policy
-	if !regexPinCode.MatchString(player.Pincode) {
-		sendHttpError(http.StatusBadRequest, "Pincode must contains 6 digits", w, err)
+	err = checkPinCode(player.Pincode)
+	if err != nil {
+		err = sendHttpError(http.StatusBadRequest, "Pincode must contains 6 digits", w, err)
+		if err != nil {
+			log.Print(err)
+		}
 		return
 	}
 
