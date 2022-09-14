@@ -7,7 +7,7 @@ docker-compose up
 
 This will provide : 
  - An api exposing its endpoint to create a player and a wallet
- - A mock api to simulate the creation of a waller on a blockchain which will be called by the other api
+ - A mock api to simulate the creation of a wallet on a blockchain which will be called by the other api
  - A postgres database to store created users and wallets
 
 ## Call endpoint
