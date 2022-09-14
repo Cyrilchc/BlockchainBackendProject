@@ -47,6 +47,12 @@ go test
 ```
 ![gotest](ReadMeImages/gotest.png)
 
+## Run benchmarks
+```
+go test -bench=.
+```
+![benchmarks](ReadMeImages/bench.png)
+
 ## Performance tests
 k6 is installed on the Backend container and test scripts are provided
 

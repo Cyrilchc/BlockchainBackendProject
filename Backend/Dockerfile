@@ -13,7 +13,7 @@ COPY . .
 RUN go build -v -o /usr/local/bin/Backend ./...
 
 RUN go test
-RUN go test -bench .
+RUN go test -bench=.
 
 # Install Performance Testing tool
 RUN wget https://github.com/grafana/k6/releases/download/v0.40.0/k6-v0.40.0-linux-amd64.deb
