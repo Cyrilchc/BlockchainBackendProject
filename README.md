@@ -41,6 +41,12 @@ This endpoint will successfully respond with a body providing the name and the w
 }
 ```
 
+## Run unit tests
+```
+go test
+```
+![gotest](ReadMeImages/gotest.png)
+
 ## Performance tests
 k6 is installed on the Backend container and test scripts are provided
 

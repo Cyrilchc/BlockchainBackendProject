@@ -32,15 +32,15 @@ func checkPinCode(pincode string) error {
 	return nil
 }
 
-func buildHttpErrorMessage(message string) ([]byte, error) {
+func buildHttpErrorMessage(message string) (string, error) {
 	resp := make(map[string]string)
 	resp["error"] = message
 	jsonResp, err := json.Marshal(resp)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return jsonResp, nil
+	return string(jsonResp), nil
 }
 
 func checkHttpMethod(method string, w http.ResponseWriter, r *http.Request) error {
@@ -51,7 +51,7 @@ func checkHttpMethod(method string, w http.ResponseWriter, r *http.Request) erro
 			return err
 		}
 
-		_, err = w.Write(message)
+		_, err = w.Write([]byte(message))
 		if err != nil {
 			return err
 		}
@@ -74,7 +74,7 @@ func sendHttpError(httpErrorCode int, message string, w http.ResponseWriter, err
 		return err
 	}
 
-	_, err = w.Write(errorMessage)
+	_, err = w.Write([]byte(errorMessage))
 	return err
 }
 

@@ -1,6 +1,10 @@
 package main
 
 import (
+	"bytes"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
@@ -126,7 +130,150 @@ func Test_checkPinCode(t *testing.T) {
 	}
 }
 
-func Bechmark_checkPinCode(b *testing.B) {
+func Test_buildHttpErrorMessage(t *testing.T) {
+	type args struct {
+		message string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name:    "Empty message",
+			args:    args{message: ""},
+			wantErr: false,
+			want:    "{\"error\":\"\"}",
+		},
+		{
+			name:    "With message",
+			args:    args{message: "Unable to insert player"},
+			wantErr: false,
+			want:    "{\"error\":\"Unable to insert player\"}",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := buildHttpErrorMessage(tt.args.message)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("buildHttpErrorMessage() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("buildHttpErrorMessage() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_checkHttpMethod(t *testing.T) {
+	type args struct {
+		method string
+		w      http.ResponseWriter
+		r      *http.Request
+	}
+	var tests = []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "With incorrect Method",
+			args: args{
+				method: "PATCH",
+				w:      httptest.NewRecorder(),
+				r:      httptest.NewRequest(http.MethodGet, fmt.Sprintf("http://%s:%s/", HOST, SERVER_PORT), bytes.NewBuffer([]byte{})),
+			},
+			wantErr: true,
+		},
+		{
+			name: "With correct Method",
+			args: args{
+				method: "POST",
+				w:      httptest.NewRecorder(),
+				r:      httptest.NewRequest(http.MethodPost, fmt.Sprintf("http://%s:%s/", HOST, SERVER_PORT), bytes.NewBuffer([]byte{})),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := checkHttpMethod(tt.args.method, tt.args.w, tt.args.r); (err != nil) != tt.wantErr {
+				t.Errorf("checkHttpMethod() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func Benchmark_checkHttpMethod(b *testing.B) {
+	type args struct {
+		method string
+		w      http.ResponseWriter
+		r      *http.Request
+	}
+	var tests = []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "With incorrect Method",
+			args: args{
+				method: "PATCH",
+				w:      httptest.NewRecorder(),
+				r:      httptest.NewRequest(http.MethodGet, fmt.Sprintf("http://%s:%s/", HOST, SERVER_PORT), bytes.NewBuffer([]byte{})),
+			},
+			wantErr: true,
+		},
+		{
+			name: "With correct Method",
+			args: args{
+				method: "POST",
+				w:      httptest.NewRecorder(),
+				r:      httptest.NewRequest(http.MethodPost, fmt.Sprintf("http://%s:%s/", HOST, SERVER_PORT), bytes.NewBuffer([]byte{})),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		b.Run(tt.name, func(b *testing.B) {
+			checkHttpMethod(tt.args.method, tt.args.w, tt.args.r)
+		})
+	}
+}
+
+func Benchmark_buildHttpErrorMessage(b *testing.B) {
+	type args struct {
+		message string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name:    "Empty message",
+			args:    args{message: ""},
+			wantErr: false,
+			want:    "{\"error\":\"\"}",
+		},
+		{
+			name:    "With message",
+			args:    args{message: "Unable to insert player"},
+			wantErr: false,
+			want:    "{\"error\":\"Unable to insert player\"}",
+		},
+	}
+	for _, tt := range tests {
+		b.Run(tt.name, func(b *testing.B) {
+			buildHttpErrorMessage(tt.args.message)
+		})
+	}
+}
+
+func Benchmark_checkPinCode(b *testing.B) {
 	type args struct {
 		pincode string
 	}
