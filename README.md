@@ -40,3 +40,29 @@ This endpoint will successfully respond with a body providing the name and the w
     "wallet_address":"1aec6b68-4918-4a24-9792-3756086c9925"
 }
 ```
+
+## Performance tests
+k6 is installed on the Backend container and test scripts are provided
+You can open a terminal on this container and run the tests
+
+### Interact with container
+```
+docker exec -it containerAddress
+```
+
+### Run tests
+```
+k6 run sample_test.js
+```
+
+### Provided test scripts 
+ - sample_test.js
+ - load_test.js
+ - stress_test.js
+ - spike_test.js
+
+You should see this kind of output
+![sample_test](ReadMeImages/sampletest.png)
+
+With spike test (There are some failures) :
+![sample_test](ReadMeImages/spiketest.png)

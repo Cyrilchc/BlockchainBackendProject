@@ -16,12 +16,16 @@ import (
 const (
 	SERVER_PORT           = "5000"
 	EXTERNAL_SERVICE_PORT = "5001"
+	HOST                  = "backend"
 	EXTERNAL_SERVICE_HOST = "mock"
 	DB_HOST               = "db"
-	PORT                  = 5432
-	USER                  = "postgres"
-	PASSWORD              = "cyril"
-	DBNAME                = "blockchainbackend"
+	//HOST                  = "localhost"
+	//EXTERNAL_SERVICE_HOST = "localhost"
+	//DB_HOST               = "localhost"
+	PORT     = 5432
+	USER     = "postgres"
+	PASSWORD = "cyril"
+	DBNAME   = "blockchainbackend"
 )
 
 var regexUsername = regexp.MustCompile(`^[a-z0-9_]{3,100}$`)

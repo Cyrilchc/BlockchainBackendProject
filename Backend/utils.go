@@ -28,7 +28,7 @@ func checkHttpMethod(method string, w http.ResponseWriter, r *http.Request) erro
 			log.Printf("Unable to write to http response : %s", err)
 		}
 
-		return errors.New("Method not allowed")
+		return errors.New("method not allowed")
 	}
 
 	return nil
