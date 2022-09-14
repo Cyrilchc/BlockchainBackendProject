@@ -1,7 +1,4 @@
-# docker build -t mockblockchainservice .
-# docker run -it --rm -p 5001:5001 --name mockblockchainservice mockblockchainservice
-
-FROM golang:latest
+FROM golang:1.19.1-alpine
 
 WORKDIR /usr/src/MockBlockchainService
 EXPOSE 5001

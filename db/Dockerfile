@@ -1,7 +1,4 @@
-# docker build -t db .
-# docker run -it --rm -p 5432:5432 --name db db
-
-FROM postgres:latest
+FROM postgres:14.5-alpine
 
 ENV POSTGRES_PASSWORD=cyril
 ENV POSTGRES_USER=postgres

@@ -1,6 +1,3 @@
-# docker build -t backend .
-# docker run -it --rm -p 5000:5000 --name backend backend
-
 FROM golang:latest
 
 WORKDIR /usr/src/Backend
