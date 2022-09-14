@@ -43,6 +43,7 @@ This endpoint will successfully respond with a body providing the name and the w
 
 ## Performance tests
 k6 is installed on the Backend container and test scripts are provided
+
 You can open a terminal on this container and run the tests
 
 ### Interact with container
@@ -55,7 +56,7 @@ docker exec -it containerAddress
 k6 run sample_test.js
 ```
 
-### Provided test scripts 
+### Provided scripts 
  - sample_test.js
  - load_test.js
  - stress_test.js
